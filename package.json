@@ -2,12 +2,14 @@
 	"name": "php-var-checker",
 	"displayName": "php-var-checker",
 	"description": "php var checker",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"author": {
 		"name": "Harris LHP",
 		"email": "ho.lehoangphi@gmail.com"
 	},
+	"icon": "author.jpg",
 	"publisher": "harrislhp",
+	"repository": "https://github.com/holhp/php-var-checker",
 	"engines": {
 		"vscode": "^1.35.0"
 	},
