@@ -2,7 +2,7 @@
 	"name": "php-var-checker",
 	"displayName": "php-var-checker",
 	"description": "php var checker",
-	"version": "1.0.1",
+	"version": "1.0.3",
 	"author": {
 		"name": "Harris LHP",
 		"email": "ho.lehoangphi@gmail.com"
