@@ -1,18 +1,18 @@
+'use strict';
+
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-let activeEditor = vscode.window.activeTextEditor;
 
 const normalDecoration = vscode.window.createTextEditorDecorationType({
 	textDecoration: 'none; opacity: 1',
-	backgroundColor: 'none',
-	color: 'none'
+	color: 'none',
 });
 
 const unusedDecorationType = vscode.window.createTextEditorDecorationType({
 	textDecoration : "underline",
-	backgroundColor: 'rgba(250, 0, 0 , 0.5)',
+	color: 'rgba(250, 0, 0 , 0.5)',
 	light: {
 		borderColor: 'darkblue'
 	},
@@ -21,45 +21,42 @@ const unusedDecorationType = vscode.window.createTextEditorDecorationType({
 	}
 });
 
+let normalizeRange : vscode.Range[] = [];
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	console.log('hello modafucker');
-	vscode.window.onDidChangeActiveTextEditor(editor => {
-		activeEditor = editor;
-		if (editor) {
-			console.log('onDidChangeActiveTextEditor');
-			checkUnuse();
-		}
+	
+	vscode.window.onDidChangeActiveTextEditor(event => {
+		console.log('onDidChangeActiveTextEditor');
+		highlight();
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidSaveTextDocument(event => {
 		console.log('onDidSaveTextDocument');
-        checkUnuse();
-	}, null, context.subscriptions);
-	
-	vscode.workspace.onDidChangeTextDocument(event => {
-		if (activeEditor && event.document === activeEditor.document) {
-			console.log('going to onDidChangeTextDocument');
-			checkUnuse();
-		}
+        highlight();
 	}, null, context.subscriptions);
 
-	/**
-	 * Check using var and apply style
-	 */
-	function checkUnuse() {
-		const ranges = getUnusingVar();
-	}
+	let disposable = vscode.commands.registerCommand('extension.sayHelloPHP', () => {
+        highlight();
+	});
+	
+	context.subscriptions.push(disposable);
+
+	highlight();
 
 	/**
 	 * Normarlize style for all variable
 	 * Get unusing var
 	 */
-	function getUnusingVar() {
-		if (!activeEditor) {
+	function highlight() {
+		const activeEditor = vscode.window.activeTextEditor;
+		if (!activeEditor || activeEditor.document.languageId !== 'php') {
 			return;
 		}
+		normalizeRange = [];
+
 		// Get all functions inside file
 		const funcRegex = /function\s*([A-z0-9]+)?\s*\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)\s*\{(?:[^}{]+|\{(?:[^}{]+|\{[^}{]*\})*\})*\}/gm;
 
@@ -73,9 +70,8 @@ export function activate(context: vscode.ExtensionContext) {
 		let matchVar;
 		let matchaccessModifiers;
 		
-		let unusingList : any = [];
-		let normalizeAMRange : any = [];
-		let normalizeRange : any = [];
+		let unusingList = [];
+		
 
 		// Reset text cursor style
 		const cursorPosition = new vscode.Position(activeEditor.selection.active.line, activeEditor.selection.active.character + 1);
@@ -94,8 +90,6 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			}
 		}
-		// Reset all style from all accessModifiers
-		activeEditor.setDecorations(normalDecoration, normalizeAMRange);
 
 		while (matchFunc = funcRegex.exec(text)) {
 			if (matchFunc) {
@@ -131,5 +125,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+	resetAllDecorations();
 	console.log('deactivate');
+
+	function resetAllDecorations() {
+		vscode.window.visibleTextEditors.forEach(textEditor => {
+			textEditor.setDecorations(normalDecoration, normalizeRange);
+		});
+	}
 }
